@@ -17,6 +17,14 @@ This extension defaults to connecting to an ActivityWatch server at `http://127.
   }
 }
 ```
+## How time is counted
+Zed tells language servers nothing about focus changes, tab switches or scrolling, only about edits, and about cursor moves through code action requests (answered with no actions). So Zed is considered in use for a minute after the last edit or cursor move:
+- while in use, a heartbeat is sent every minute with a pulsetime of 80s, so they merge into one event;
+- a new event starts as soon as the file, branch or repository changes, and the previous one ends 1ms before it;
+- a minute after the last edit or cursor move, the event ends with a 0s event with the same data and `"focused": false`, so the next one does not merge into it.
+
+Switching to an open tab is only seen at the next cursor move or edit in it.
+
 ## Implementation Details
 Uses the [activitywatch-ls](https://github.com/sachk/aw-watcher-zed/tree/main/activitywatch-ls) to receive edit events from Zed and send hearbeats to an ActivityWatch server using the [aw-client-rust](https://github.com/ActivityWatch/aw-server-rust/tree/master/aw-client-rust) library.
 
