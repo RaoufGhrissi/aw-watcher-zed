@@ -1,4 +1,6 @@
-use std::{collections::HashMap, sync::Arc};
+mod git;
+
+use std::{collections::HashMap, path::Path, sync::Arc};
 
 use arc_swap::ArcSwap;
 use aw_client_rust::AwClient;
@@ -66,6 +68,16 @@ impl ActivityWatchLanguageServer {
 
         if let Some(language) = language {
             data.insert("language".to_string(), Value::String(language));
+        }
+
+        if let Some(dir) = Path::new(&event.uri).parent() {
+            let branch = git::branch(dir).await;
+            if let Some(repository) = git::repository(dir, branch.as_deref()).await {
+                data.insert("repository".to_string(), Value::String(repository));
+            }
+            if let Some(branch) = branch {
+                data.insert("branch".to_string(), Value::String(branch));
+            }
         }
 
         // Duration 0 because heartbeats https://docs.activitywatch.net/en/latest/buckets-and-events.html#id7
